@@ -1,0 +1,9 @@
+export const PRODUCT_SELECTED = 'PRODUCT_SELECTED';
+export const PRODUCT_LIST = 'PRODUCT_LIST';
+export const ADD_PRODUCT = 'ADD_PRODUCT';
+export const UPDATE_PRODUCT = 'UPDATE_PRODUCT';
+export const COMMENT_PRODUCT = 'COMMENT_PRODUCT';
+export const PRODUCT_All_COMMENTS = 'PRODUCT_All_COMMENTS';
+
+
+
