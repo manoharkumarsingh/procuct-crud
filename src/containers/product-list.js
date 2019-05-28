@@ -6,6 +6,7 @@ import {Link} from "react-router-dom";
 // import { alertmesage} from '../store/alertmessage';
 
 
+
 class ProductList extends Component {
     constructor(props) {
         super(props);
@@ -33,6 +34,7 @@ class ProductList extends Component {
             <div className="productList row">
             {
                 products.map((product)=>{
+                  
                     return (
                     <div className="col-md-3 productlist" key={product._id}>
                         <div className="w3-card-4">
@@ -40,7 +42,12 @@ class ProductList extends Component {
                                 <h4 className="overflow">{product.title}</h4>
                             </header>
                             <div className="w3-container">
-                                <img src="../assets/image/product.png" alt="Avatar" className="w3-left w3-circle"/>
+                                {
+                                    product.path ? 
+                                    <img height="226" width="226" src={'../files/'+ product.path.substr(13)} alt="Avatar" className="w3-left w3-circle"/>
+                                    :
+                                    <img src="../assets/image/product.png" alt="Avatar" className="w3-left w3-circle"/>
+                                }
                                 <p className="overflow">{product.content}</p>
                             </div>
                             <div className="row btndetails">

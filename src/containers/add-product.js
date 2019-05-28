@@ -3,6 +3,8 @@ import {connect} from 'react-redux';
 import { ADD_PRODUCT,UPDATE_PRODUCT} from '../store/actionTypes';
 import { productModule} from '../api/api';
 import { alertmesage} from '../store/alertmessage';
+var FormData = require('form-data');
+
 
 class Addproduct extends Component {
     constructor(props) {
@@ -11,23 +13,27 @@ class Addproduct extends Component {
             _id :  '',
             title : '',
             content : '',
-            file : '../assets/image/dummy.jpg'
+            productImage : '../assets/image/dummy.jpg'
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmitForm =  this.handleSubmitForm.bind(this);
         this.handleUpdateProduct =  this.handleUpdateProduct.bind(this);
         this.handleChangeImage = this.handleChangeImage.bind(this);
         this.alertMessage = '';
+        this.previewImage = '../assets/image/product.png';
     }
     handleChange(event) {
         this.setState({
             title : this.refs.title.value,
-            content : this.refs.body.value
+            content : this.refs.body.value,
+           
         });      
     }
 
     handleChangeImage(event){
-      this.setState({file: URL.createObjectURL(event.target.files[0])})
+     this.previewImage = URL.createObjectURL(event.target.files[0]);
+     //this.setState({productImage: URL.createObjectURL(event.target.files[0])})
+     this.setState({productImage: event.target.files[0]})
     }
 
     async componentWillMount() {
@@ -55,8 +61,14 @@ class Addproduct extends Component {
         }
     }
 
-    async handleUpdateProduct(){
-        await this.props.updateproduct(this.state);
+    async handleUpdateProduct(event){
+        event.preventDefault();
+        var form = new FormData();
+        form.append('_id', this.state._id);
+        form.append('title', this.state.title);
+        form.append('content',this.state.content);
+        form.append('productImage', this.state.productImage);
+        await this.props.updateproduct(form, this.state._id);
         if( this.props.addedproduct){
            alertmesage.createNotification("success","Product "+this.props.addedproduct.data.title+" Updated")
          this.setState({
@@ -71,7 +83,12 @@ class Addproduct extends Component {
    
     async handleSubmitForm(event){
        event.preventDefault();
-       await this.props.addproduct(this.state)
+       var form = new FormData();
+       form.append('_id', this.state._id);
+       form.append('title', this.state.title);
+       form.append('content',this.state.content);
+       form.append('productImage', this.state.productImage);
+       await this.props.addproduct(form)
        var status = this.props.addedproduct.status;
        alertmesage.createNotification(status,"Product "+this.props.addedproduct.data.title+" created ")
        if( this.props.addedproduct){
@@ -81,7 +98,6 @@ class Addproduct extends Component {
           });
         this.props.history.push("/");
       }
-     
     }
   
     render(){
@@ -90,7 +106,7 @@ class Addproduct extends Component {
               <div className="row">
                <div className="col-md-2"></div>
                <div className="col-md-8 well">
-                    <form onSubmit={this.handleSubmitForm}>
+                    <form onSubmit={this.handleUpdateProduct}>
                         <div className="form-group">
                             <label htmlFor="title">Title</label>
                             <input type="text" className="form-control" value={this.state.title} onChange={this.handleChange} ref="title"/>
@@ -100,10 +116,10 @@ class Addproduct extends Component {
                             <input type="text" className="form-control" value={this.state.content} onChange={this.handleChange} ref="body"/>
                         </div>
                         
-                        {/* <div className="form-group">
-                          <img src={this.state.file} className="img-circle productImage"  />
+                        <div className="form-group">
+                          <img src={this.previewImage} className="img-circle productImage" alt="product" />
                           <input type="file" onChange={this.handleChangeImage} ref="img" />
-                        </div> */}
+                        </div> 
                         
                         <div className='row'>
                            <div className="col-md-4"></div>
@@ -141,9 +157,9 @@ const  mapDispatchToProps = dispatch => ({
         payload: await productModule.addProduct(productdetails)
     }),
 
-    updateproduct: async (productdetails) =>  dispatch({
+    updateproduct: async (productdetails,productid) =>  dispatch({
         type: UPDATE_PRODUCT, 
-        payload: await productModule.updateProduct(productdetails)
+        payload: await productModule.updateProduct(productdetails,productid)
     })
   });
 

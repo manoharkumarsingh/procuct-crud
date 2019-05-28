@@ -2,18 +2,46 @@ const router = require("express").Router();
 const mongoose = require("mongoose")
 const Post = mongoose.model('Post')
 const Comment = mongoose.model('Comment')
+const multer = require('multer');
+const ObjectId = require("mongodb").ObjectID
+/** Storage Engine */
+const storage = multer.diskStorage({
+    destination: function(req, file, fn){
+        fn(null,'./public/files')
+    },
+    filename: function(req, file, fn){
+      fn(null,  new Date().getTime().toString()+'-'+file.originalname);
+    }
+  }); 
+ const fileFilter =  function(req, file, callback){
+    if(file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
+        callback(null, true)
+    }else{
+        callback(null, false)
+    }
+  }
+const upload = multer({
+    storage : storage,
+    limit :{
+        fileSize : 1024*1024*5
+    },
+    fileFilter : fileFilter
+})
+/*Image Upload code complete*/
 
 router.get("/",  async (req, res)=>{
     const posts =  await Post.find({});
     res.send(posts)
 })
 
-router.post("/", async (req,res)=>{
-    //res.send(req.body)
+router.post("/", upload.single('productImage'), async (req,res)=>{
     const post = new Post();
     post.title = req.body.title
     post.content = req.body.content
-    // post.image = req.body.file
+    if(req.file){
+      post.path = req.file.path
+    }
+   
     await post.save();
     res.send(post);
 })
@@ -24,22 +52,44 @@ router.get('/:postId', async (req,res) => {
     res.send(post)
 })
 
-router.put("/:postId", async (req,res)=>{
+router.put("/:postId",upload.single('productImage'), async (req,res)=>{
     //res.send(req.body)
-    const post = await Post.findByIdAndUpdate({
-        _id :req.params.postId
-    }, req.body,{
-            new:true,
-            runValidator :true
-    });
+    // const post = await Post.findByIdAndUpdate({
+    //     _id :req.params.postId
+    // }, req.body,{
+    //         new:true,
+    //         runValidator :true
+    // });
+    const path = '';
+    if(req.file){
+      path = req.file.path ?  req.file.path : ""
+    }
+   
+    const post = await Post.update(
+       {'_id' : req.params.postId},
+       {
+          $set : {
+               'title':req.body.title, 
+               'content':req.body.content,
+               'path' : path
+            }
+        }
+        )
+  
     res.send(post);
 })
 
 router.delete("/:postId", async (req,res)=>{
-    //res.send(req.body)  
+   
+    /**Deleteing Data from post */
     const post = await Post.findByIdAndRemove({
         _id :req.params.postId
     });
+    /**Removing Data from comment */
+    await Comment.remove({
+        "post": ObjectId(""+req.params.postId+"")
+    }); 
+  
     res.send(post);
 })
 
@@ -78,7 +128,17 @@ router.post("/:postId/comment",async (req, res) => {
  })
 
  router.delete("/comment/:commentId", async (req,res) => {
-     await Comment.findByIdAndRemove(req.params.commentId);res.send({message : "Comment Successfully Deleted"});
+    const comment = await Comment.findOne({_id : req.params.commentId})
+    const postId = comment.post;
+    await Post.update(
+        { _id:postId}, 
+        {$pull: {comments: req.params.commentId}},  
+        { multi: true },
+        function(err, data){
+             console.log(err, data);
+        });
+    await Comment.findByIdAndRemove(req.params.commentId);
+    res.send({message : "Comment Successfully Deleted"});
  })
 
 module.exports = router;

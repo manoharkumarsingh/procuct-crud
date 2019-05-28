@@ -52,8 +52,8 @@ export const productModule = {
     return ApiService.post( 'http://localhost:4600/posts/',product)
   },
 
-  updateProduct(product) {
-    return ApiService.put( 'http://localhost:4600/posts/'+product['_id'],product)
+  updateProduct(product,productid) {
+    return ApiService.put( 'http://localhost:4600/posts/'+productid,product)
   },
 
   deleteProduct(product) {

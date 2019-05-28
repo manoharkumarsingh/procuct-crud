@@ -72,9 +72,12 @@ class ProductDetail extends Component {
         }); 
     }
     async componentWillMount() {
-        const productid = this.props.location.state.product;
-        await this.props.selectedProduct(productid)
-        await this.props.comments(productid)
+       
+        if(this.props.location.state){
+            const productid = this.props.location.state.product;
+            await this.props.selectedProduct(productid)
+            await this.props.comments(productid)
+        }
      }
 
      async handleDeleteComment(comment){
@@ -147,7 +150,7 @@ class ProductDetail extends Component {
 
     
     render(){
-        if(this.props.product){
+        if(this.props.product[0]['_id']){
             return (
                 <div className="container">
                     <div className="">

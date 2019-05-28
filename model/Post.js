@@ -8,6 +8,9 @@ const post_schema = mongoose.Schema({
         type : String,
         required :"Content is required"
     },
+    path :{
+        type : String
+    },
     comments :[
         {
             type : mongoose.Schema.Types.ObjectId,
